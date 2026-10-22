@@ -52,13 +52,13 @@ git push -u origin main
 
 ## 4. Operating notes
 - **Free-tier limits:** Groq rate-limits requests. The app retries with backoff and shows a friendly
-  message on a 429. Use `llama-3.1-8b-instant` for higher limits.
+  message on a 429. Pick a smaller model (e.g. `openai/gpt-oss-20b`) in the sidebar for higher limits.
 - **Public URL = shared quota:** set `APP_PASSWORD`, and keep the per-session run cap
   (`MAX_RUNS_PER_SESSION` in `app.py`).
 - **Files are ephemeral:** each visitor gets a temp workspace; it's wiped when the app restarts or sleeps.
   The sidebar has Download buttons.
 - **Sleeping apps:** free apps hibernate after inactivity; the first visit afterwards wakes them up.
-- **Model names change:** if Groq retires a model, edit `MODELS` in `app.py` and the default in `agent_free.py`.
+- **Model names change:** the sidebar lists models fetched live from Groq for your key. If the default is retired, pick another there, or update `PREFERRED_MODELS` / the default in `agent_free.py`.
 
 ## 5. Scheduled restart + keep-awake (every 6 hours)
 `.github/workflows/restart-app.yml` runs every 6 hours (and on demand from the Actions tab):
