@@ -8,16 +8,22 @@ from pathlib import Path
 
 import streamlit as st
 
+from agent_free import PREFERRED_MODELS, list_models
+
 st.set_page_config(page_title="Autonomous AI Agent", page_icon="🤖", layout="wide")
 
 MAX_RUNS_PER_SESSION = 15   # protects your free Groq quota on a public app
 COOLDOWN_SECONDS = 3
-MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
 EXAMPLES = [
     "Create notes.txt with 3 project ideas, then search it for 'agent' and write summary.txt with the match count.",
     "What is 17.5% of 2480? Save the answer in result.txt and read it back to confirm.",
     "Write a 5-item packing checklist to checklist.md, then list all files in the workspace.",
 ]
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_models(key: str) -> list:
+    return list_models(key)
 
 
 def secret(name, default=None):
@@ -54,7 +60,9 @@ api_key = secret("GROQ_API_KEY")
 with st.sidebar:
     st.header("Settings")
     engine = st.radio("Engine", ["Plain loop", "LangGraph"], help="Same tools, two implementations.")
-    model = st.selectbox("Model (Groq)", MODELS, help="8B is faster and has higher free-tier limits.")
+    models = get_models(api_key) if api_key else PREFERRED_MODELS
+    model = st.selectbox("Model (Groq)", models,
+                         help="Pulled live from Groq for your key. Smaller models have higher free-tier limits.")
     max_steps = st.slider("Max steps", 3, 15, 10)
     st.caption(f"Runs left this session: {MAX_RUNS_PER_SESSION - st.session_state.runs}")
 

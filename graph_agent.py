@@ -13,7 +13,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from tools import ToolError, run_tool
 
 PROVIDER = os.getenv("PROVIDER", "groq")   # groq (free key) | ollama (no key) | anthropic
-DEFAULT_MODEL = os.getenv("MODEL", "llama-3.3-70b-versatile")
+DEFAULT_MODEL = os.getenv("MODEL", "openai/gpt-oss-120b")
 SYSTEM = (
     "You are an autonomous assistant. Plan briefly, use tools step by step, "
     "recover from tool errors, and finish with a concise answer."
