@@ -1,0 +1,6 @@
+# Deployed app (Streamlit Community Cloud installs this file)
+streamlit>=1.40.0
+openai>=1.40.0
+langgraph>=0.2.0
+langchain-core>=0.3.0
+langchain-groq>=0.2.0
