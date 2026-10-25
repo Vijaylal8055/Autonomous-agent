@@ -1,58 +1,12 @@
-name: Restart and keep app awake
-
-on:
-  schedule:
-    - cron: "0 */6 * * *"        # every 6 hours (UTC); GitHub may delay runs by a few minutes
-  workflow_dispatch:             # run it manually from the Actions tab
-    inputs:
-      restart:
-        description: "Force a restart (empty commit) before the wake-up check"
-        type: boolean
-        default: true
-
-permissions:
-  contents: write                # needed to push the empty restart commit
-
-concurrency:
-  group: restart-app
-  cancel-in-progress: false
-
-env:
-  # Set to "false" to only keep the app awake without restarting it.
-  RESTART_APP: "true"
-
-jobs:
-  restart-and-ping:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-
-      # Streamlit Community Cloud redeploys whenever the branch head changes,
-      # so an empty commit is a "restart" that needs no credentials.
-      - name: Restart app (empty commit)
-        if: ${{ env.RESTART_APP == 'true' && (github.event_name == 'schedule' || inputs.restart) }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit --allow-empty -m "chore: scheduled app restart [skip ci]"
-          git push
-
-      - name: Give Streamlit time to redeploy
-        if: ${{ env.RESTART_APP == 'true' && (github.event_name == 'schedule' || inputs.restart) }}
-        run: sleep 120
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install browser
-        run: |
-          pip install playwright
-          python -m playwright install --with-deps chromium
-
-      # Opens the app in a real browser: counts as traffic and wakes it if it hibernated.
-      - name: Visit app (wake if asleep)
-        env:
-          APP_URL: ${{ vars.APP_URL }}
-        run: python scripts/keepalive.py
+          for i in 1 2 3; do
+            if git pull --rebase origin main && git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push failed, retrying ($i/3)..."
+            sleep 5
+          done
+          exit 1
